@@ -19,7 +19,6 @@ public class PrescriptionsFrame extends JFrame {
     
     private JButton addBtn;
     private JButton editBtn;
-    private JButton buttonGenerate;
     private JButton deleteBtn;
     private JButton saveBtn;
     private JButton exitBtn;
@@ -48,14 +47,12 @@ public class PrescriptionsFrame extends JFrame {
     JPanel buttonPanel = new JPanel();
     addBtn = new JButton("Add Prescription");
     editBtn = new JButton("Edit Selected");
-    buttonGenerate = new JButton("Generate Prescription");
     deleteBtn = new JButton("Remove");
     saveBtn = new JButton("Save All");
     exitBtn = new JButton("Close");
 
     buttonPanel.add(addBtn);
     buttonPanel.add(editBtn);
-    buttonPanel.add(buttonGenerate);
     buttonPanel.add(deleteBtn);
     buttonPanel.add(saveBtn);
     buttonPanel.add(exitBtn);
@@ -70,10 +67,6 @@ public JButton getAddBtn() {
 }
 public JButton getEditBtn() {
      return editBtn; 
-}
-
-public JButton getGenerateOutputBtn() { 
-return buttonGenerate; 
 }
 
 public JButton getDeleteBtn() { 

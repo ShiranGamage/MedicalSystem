@@ -640,9 +640,6 @@ public class MedicalController {
       this.prescriptionsFrame.getDeleteBtn().addActionListener(e -> {
          this.deletePrescriptionRecord();
       });
-      this.prescriptionsFrame.getGenerateOutputBtn().addActionListener(e -> {
-         this.generatePrescriptionOutput();
-      });
       this.prescriptionsFrame.getSaveBtn().addActionListener(e -> {
          this.savePrescriptionsData();
       });
@@ -653,39 +650,62 @@ public class MedicalController {
 
    private void addPrescriptionDialog() {
       try {
-         String var1 = JOptionPane.showInputDialog(this.prescriptionsFrame, "Prescription ID:");
-         if (var1 != null && !var1.trim().isEmpty()) {
-            String var2 = JOptionPane.showInputDialog(this.prescriptionsFrame, "Patient ID:");
-            if (var2 != null && !var2.trim().isEmpty()) {
-               String var3 = JOptionPane.showInputDialog(this.prescriptionsFrame, "Medication:");
-               if (var3 != null && !var3.trim().isEmpty()) {
-                  String var4 = JOptionPane.showInputDialog(this.prescriptionsFrame, "Dosage:");
-                  if (var4 == null) {
-                     var4 = "";
-                  }
-
-                  String var5 = JOptionPane.showInputDialog(this.prescriptionsFrame, "Frequency:");
-                  if (var5 == null) {
-                     var5 = "";
-                  }
-
-                  String var6 = JOptionPane.showInputDialog(this.prescriptionsFrame, "Start Date (YYYY-MM-DD):");
-                  if (var6 == null) {
-                     var6 = "";
-                  }
-
-                  String var7 = JOptionPane.showInputDialog(this.prescriptionsFrame, "End Date (YYYY-MM-DD):");
-                  if (var7 == null) {
-                     var7 = "";
-                  }
-
-                  this.prescriptionsFrame.getTableModel().addRow(new Object[]{var1, var2, var3, var4, var5, var6, var7});
-                  JOptionPane.showMessageDialog(this.prescriptionsFrame, "Prescription added. Click Save to persist.");
-               }
+         String prescriptionId = JOptionPane.showInputDialog(this.prescriptionsFrame, "Prescription ID:");
+         if (prescriptionId != null && !prescriptionId.trim().isEmpty()) {
+            String patientId = JOptionPane.showInputDialog(this.prescriptionsFrame, "Patient ID:");
+            if (patientId != null && !patientId.trim().isEmpty()) {
+               String clinicianId = JOptionPane.showInputDialog(this.prescriptionsFrame, "Clinician ID:");
+               if (clinicianId == null) clinicianId = "";
+               
+               String appointmentId = JOptionPane.showInputDialog(this.prescriptionsFrame, "Appointment ID:");
+               if (appointmentId == null) appointmentId = "";
+               
+               String prescriptionDate = LocalDate.now().toString();
+               
+               String medication = JOptionPane.showInputDialog(this.prescriptionsFrame, "Medication:");
+               if (medication == null) medication = "";
+               
+               String dosage = JOptionPane.showInputDialog(this.prescriptionsFrame, "Dosage:");
+               if (dosage == null) dosage = "";
+               
+               String frequency = JOptionPane.showInputDialog(this.prescriptionsFrame, "Frequency:");
+               if (frequency == null) frequency = "";
+               
+               String durationDays = JOptionPane.showInputDialog(this.prescriptionsFrame, "Duration (Days):");
+               if (durationDays == null) durationDays = "";
+               
+               String quantity = JOptionPane.showInputDialog(this.prescriptionsFrame, "Quantity:");
+               if (quantity == null) quantity = "";
+               
+               String instructions = JOptionPane.showInputDialog(this.prescriptionsFrame, "Instructions:");
+               if (instructions == null) instructions = "";
+               
+               String pharmacy = JOptionPane.showInputDialog(this.prescriptionsFrame, "Pharmacy Name:");
+               if (pharmacy == null) pharmacy = "";
+               
+               String status = "Pending";
+               String issueDate = LocalDate.now().toString();
+               String collectionDate = "";
+               
+               this.prescriptionsFrame.getTableModel().addRow(new Object[]{
+                  prescriptionId, patientId, clinicianId, appointmentId, prescriptionDate,
+                  medication, dosage, frequency, durationDays, quantity, 
+                  instructions, pharmacy, status, issueDate, collectionDate
+               });
+               
+               // Write to prescriptions_output.txt immediately
+               this.writePrescriptionToOutput(prescriptionId, patientId, clinicianId, appointmentId, 
+                  prescriptionDate, medication, dosage, frequency, durationDays, quantity,
+                  instructions, pharmacy, status, issueDate, collectionDate);
+               
+               // Save to prescriptions.csv immediately
+               this.savePrescriptionsData();
+               
+               JOptionPane.showMessageDialog(this.prescriptionsFrame, "Prescription added successfully!\n- Written to prescriptions_output.txt\n- Saved to prescriptions.csv");
             }
          }
-      } catch (Exception var8) {
-         JOptionPane.showMessageDialog(this.prescriptionsFrame, "Error: " + var8.getMessage());
+      } catch (Exception e) {
+         JOptionPane.showMessageDialog(this.prescriptionsFrame, "Error: " + e.getMessage());
       }
    }
 
@@ -762,76 +782,54 @@ public class MedicalController {
 
    }
 
-   private void generatePrescriptionOutput() {
-      int var1 = this.prescriptionsFrame.getSelectedRow();
-      if (var1 == -1) {
-         JOptionPane.showMessageDialog(this.prescriptionsFrame, "Please select a prescription to generate output");
-      } else {
+   private void writePrescriptionToOutput(String prescriptionId, String patientId, String clinicianId, 
+                                           String appointmentId, String prescriptionDate, String medication,
+                                           String dosage, String frequency, String durationDays, String quantity,
+                                           String instructions, String pharmacy, String status, 
+                                           String issueDate, String collectionDate) {
+      try {
+         String currentDir = System.getProperty("user.dir");
+         File outputFile = currentDir.endsWith("src") || currentDir.endsWith("src\\") || currentDir.endsWith("src/") 
+            ? new File(currentDir + "/../prescriptions_output.txt") 
+            : new File("prescriptions_output.txt");
+         
+         PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputFile, true)));
          try {
-            String var2 = System.getProperty("user.dir");
-            File var3 = !var2.endsWith("src") && !var2.endsWith("src\\") && !var2.endsWith("src/") ? new File("prescriptions_output.txt") : new File(var2 + "/../prescriptions_output.txt");
-            PrintWriter var4 = new PrintWriter(new BufferedWriter(new FileWriter(var3, true)));
-
-            try {
-               var4.println("-------------------------------------");
-               var4.println("    PRESCRIPTION FORM");
-               var4.println("--------------------------------------");
-               var4.println();
-               String var10001 = String.valueOf(this.prescriptionsFrame.getTableModel().getValueAt(var1, 0));
-               var4.println("PRESCRIPTION ID: " + var10001);
-               var10001 = String.valueOf(this.prescriptionsFrame.getTableModel().getValueAt(var1, 1));
-               var4.println("PATIENT ID: " + var10001);
-               var10001 = String.valueOf(this.prescriptionsFrame.getTableModel().getValueAt(var1, 2));
-               var4.println("CLINICIAN ID: " + var10001);
-               var4.println();
-               var4.println("....... PRESCRIPTION DETAILS.........");
-               var10001 = String.valueOf(this.prescriptionsFrame.getTableModel().getValueAt(var1, 4));
-               var4.println("Prescription Date: " + var10001);
-               var10001 = String.valueOf(this.prescriptionsFrame.getTableModel().getValueAt(var1, 5));
-               var4.println("Medication: " + var10001);
-               var10001 = String.valueOf(this.prescriptionsFrame.getTableModel().getValueAt(var1, 6));
-               var4.println("Dosage: " + var10001);
-               var10001 = String.valueOf(this.prescriptionsFrame.getTableModel().getValueAt(var1, 7));
-               var4.println("Frequency: " + var10001);
-               var10001 = String.valueOf(this.prescriptionsFrame.getTableModel().getValueAt(var1, 8));
-               var4.println("Duration (Days): " + var10001);
-               var10001 = String.valueOf(this.prescriptionsFrame.getTableModel().getValueAt(var1, 9));
-               var4.println("Quantity: " + var10001);
-               var4.println();
-               var4.println("--- INSTRUCTIONS ---");
-               var4.println(this.prescriptionsFrame.getTableModel().getValueAt(var1, 10));
-               var4.println();
-               var4.println("--- PHARMACY INFORMATION ---");
-               var10001 = String.valueOf(this.prescriptionsFrame.getTableModel().getValueAt(var1, 11));
-               var4.println("Pharmacy: " + var10001);
-               var10001 = String.valueOf(this.prescriptionsFrame.getTableModel().getValueAt(var1, 12));
-               var4.println("Status: " + var10001);
-               var4.println();
-               var4.println("--- DISPENSING DETAILS ---");
-               var10001 = String.valueOf(this.prescriptionsFrame.getTableModel().getValueAt(var1, 13));
-               var4.println("Issue Date: " + var10001);
-               var10001 = String.valueOf(this.prescriptionsFrame.getTableModel().getValueAt(var1, 14));
-               var4.println("Collection Date: " + var10001);
-               var4.println();
-               var4.println("-------------------------------------");
-               var4.println();
-               var4.println();
-            } catch (Throwable var8) {
-               try {
-                  var4.close();
-               } catch (Throwable var7) {
-                  var8.addSuppressed(var7);
-               }
-
-               throw var8;
-            }
-
-            var4.close();
-            JOptionPane.showMessageDialog(this.prescriptionsFrame, "Prescription output generated successfully!\nFile: " + var3.getAbsolutePath());
-         } catch (Exception var9) {
-            JOptionPane.showMessageDialog(this.prescriptionsFrame, "Error generating output: " + var9.getMessage());
+            writer.println("-------------------------------------");
+            writer.println("    PRESCRIPTION FORM");
+            writer.println("--------------------------------------");
+            writer.println();
+            writer.println("PRESCRIPTION ID: " + prescriptionId);
+            writer.println("PATIENT ID: " + patientId);
+            writer.println("CLINICIAN ID: " + clinicianId);
+            writer.println();
+            writer.println("....... PRESCRIPTION DETAILS.........");
+            writer.println("Prescription Date: " + prescriptionDate);
+            writer.println("Medication: " + medication);
+            writer.println("Dosage: " + dosage);
+            writer.println("Frequency: " + frequency);
+            writer.println("Duration (Days): " + durationDays);
+            writer.println("Quantity: " + quantity);
+            writer.println();
+            writer.println("--- INSTRUCTIONS ---");
+            writer.println(instructions);
+            writer.println();
+            writer.println("--- PHARMACY INFORMATION ---");
+            writer.println("Pharmacy: " + pharmacy);
+            writer.println("Status: " + status);
+            writer.println();
+            writer.println("--- DISPENSING DETAILS ---");
+            writer.println("Issue Date: " + issueDate);
+            writer.println("Collection Date: " + collectionDate);
+            writer.println();
+            writer.println("-------------------------------------");
+            writer.println();
+            writer.println();
+         } finally {
+            writer.close();
          }
-
+      } catch (Exception e) {
+         JOptionPane.showMessageDialog(this.prescriptionsFrame, "Error writing to prescriptions_output.txt: " + e.getMessage());
       }
    }
 
@@ -1129,9 +1127,6 @@ public class MedicalController {
       this.referralsFrame.getDeleteBtn().addActionListener(e -> {
          this.deleteReferralRecord();
       });
-      this.referralsFrame.getGenerateOutputBtn().addActionListener(e -> {
-         this.generateReferralOutput();
-      });
       this.referralsFrame.getSaveBtn().addActionListener(e -> {
          this.saveReferralsData();
       });
@@ -1187,7 +1182,14 @@ public class MedicalController {
                   String var12 = LocalDate.now().toString();
                   String var13 = LocalDateTime.now().toString();
                   this.referralsFrame.getTableModel().addRow(new Object[]{var11, var1, var2, var3, var4, var5, var12, var6, var7, var8, var9, "Pending", "", var10, var13, var13});
-                  JOptionPane.showMessageDialog(this.referralsFrame, "Referral added. Click Save to persist.");
+                  
+                  // Write to referrals_output.txt immediately
+                  this.writeReferralToOutput(var11, var1, var2, var3, var4, var5, var12, var6, var7, var8, var9, "Pending", "", var10, var13, var13);
+                  
+                  // Save to referrals.csv immediately
+                  this.saveReferralsData();
+                  
+                  JOptionPane.showMessageDialog(this.referralsFrame, "Referral added successfully!\n- Written to referrals_output.txt\n- Saved to referrals.csv");
                }
             }
          }
@@ -1358,88 +1360,67 @@ public class MedicalController {
       }
    }
 
-   private void generateReferralOutput() {
-      int var1 = this.referralsFrame.getSelectedRow();
-      if (var1 == -1) {
-         JOptionPane.showMessageDialog(this.referralsFrame, "Please select a referral to generate output");
-      } else {
+   private void writeReferralToOutput(String referralId, String patientId, String referringClinicianId, 
+                                       String referredToClinicianId, String referringFacilityId, 
+                                       String referredToFacilityId, String referralDate, String urgencyLevel, 
+                                       String referralReason, String clinicalSummary, String requestedInvestigations, 
+                                       String status, String appointmentId, String notes, String createdDate, 
+                                       String lastUpdated) {
+      try {
+         String currentDir = System.getProperty("user.dir");
+         File outputFile = currentDir.endsWith("src") || currentDir.endsWith("src\\") || currentDir.endsWith("src/") 
+            ? new File(currentDir + "/../referrals_output.txt") 
+            : new File("referrals_output.txt");
+         
+         PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputFile, true)));
          try {
-            String var2 = System.getProperty("user.dir");
-            File var3 = !var2.endsWith("src") && !var2.endsWith("src\\") && !var2.endsWith("src/") ? new File("referrals_output.txt") : new File(var2 + "/../referrals_output.txt");
-            PrintWriter var4 = new PrintWriter(new BufferedWriter(new FileWriter(var3, true)));
-
-            try {
-               var4.println("=====================================");
-               var4.println("    NHS REFERRAL FORM");
-               var4.println("=====================================");
-               var4.println();
-               String var10001 = String.valueOf(this.referralsFrame.getTableModel().getValueAt(var1, 0));
-               var4.println("REFERRAL ID: " + var10001);
-               var10001 = String.valueOf(this.referralsFrame.getTableModel().getValueAt(var1, 1));
-               var4.println("PATIENT ID: " + var10001);
-               var4.println();
-               var4.println("--- CLINICAL PATHWAY INFORMATION ---");
-               var10001 = String.valueOf(this.referralsFrame.getTableModel().getValueAt(var1, 6));
-               var4.println("Referral Date: " + var10001);
-               var10001 = String.valueOf(this.referralsFrame.getTableModel().getValueAt(var1, 7));
-               var4.println("Urgency Level: " + var10001);
-               var10001 = String.valueOf(this.referralsFrame.getTableModel().getValueAt(var1, 11));
-               var4.println("Status: " + var10001);
-               var4.println();
-               var4.println("--- REFERRING PROVIDER ---");
-               var10001 = String.valueOf(this.referralsFrame.getTableModel().getValueAt(var1, 2));
-               var4.println("Clinician ID: " + var10001);
-               var10001 = String.valueOf(this.referralsFrame.getTableModel().getValueAt(var1, 4));
-               var4.println("Facility ID: " + var10001);
-               var4.println();
-               var4.println("--- REFERRED TO PROVIDER ---");
-               var10001 = String.valueOf(this.referralsFrame.getTableModel().getValueAt(var1, 3));
-               var4.println("Clinician ID: " + var10001);
-               var10001 = String.valueOf(this.referralsFrame.getTableModel().getValueAt(var1, 5));
-               var4.println("Facility ID: " + var10001);
-               var4.println();
-               var4.println("--- CLINICAL INFORMATION ---");
-               var10001 = String.valueOf(this.referralsFrame.getTableModel().getValueAt(var1, 8));
-               var4.println("Reason for Referral: " + var10001);
-               var4.println();
-               var4.println("Clinical Summary: ");
-               var4.println(this.referralsFrame.getTableModel().getValueAt(var1, 9));
-               var4.println();
-               var4.println("Requested Investigations: ");
-               var4.println(this.referralsFrame.getTableModel().getValueAt(var1, 10));
-               var4.println();
-               var4.println("--- APPOINTMENT DETAILS ---");
-               var10001 = String.valueOf(this.referralsFrame.getTableModel().getValueAt(var1, 12));
-               var4.println("Appointment ID: " + var10001);
-               var4.println();
-               var4.println("--- ADDITIONAL NOTES ---");
-               var4.println(this.referralsFrame.getTableModel().getValueAt(var1, 13));
-               var4.println();
-               var4.println("--- RECORD DETAILS ---");
-               var10001 = String.valueOf(this.referralsFrame.getTableModel().getValueAt(var1, 14));
-               var4.println("Created Date: " + var10001);
-               var10001 = String.valueOf(this.referralsFrame.getTableModel().getValueAt(var1, 15));
-               var4.println("Last Updated: " + var10001);
-               var4.println();
-               var4.println("=====================================");
-               var4.println();
-               var4.println();
-            } catch (Throwable var8) {
-               try {
-                  var4.close();
-               } catch (Throwable var7) {
-                  var8.addSuppressed(var7);
-               }
-
-               throw var8;
-            }
-
-            var4.close();
-            JOptionPane.showMessageDialog(this.referralsFrame, "Referral output generated successfully to:\n" + var3.getAbsolutePath());
-         } catch (Exception var9) {
-            JOptionPane.showMessageDialog(this.referralsFrame, "Error generating output: " + var9.getMessage());
+            writer.println("=====================================");
+            writer.println("    NHS REFERRAL FORM");
+            writer.println("=====================================");
+            writer.println();
+            writer.println("REFERRAL ID: " + referralId);
+            writer.println("PATIENT ID: " + patientId);
+            writer.println();
+            writer.println("--- CLINICAL PATHWAY INFORMATION ---");
+            writer.println("Referral Date: " + referralDate);
+            writer.println("Urgency Level: " + urgencyLevel);
+            writer.println("Status: " + status);
+            writer.println();
+            writer.println("--- REFERRING PROVIDER ---");
+            writer.println("Clinician ID: " + referringClinicianId);
+            writer.println("Facility ID: " + referringFacilityId);
+            writer.println();
+            writer.println("--- REFERRED TO PROVIDER ---");
+            writer.println("Clinician ID: " + referredToClinicianId);
+            writer.println("Facility ID: " + referredToFacilityId);
+            writer.println();
+            writer.println("--- CLINICAL INFORMATION ---");
+            writer.println("Reason for Referral: " + referralReason);
+            writer.println();
+            writer.println("Clinical Summary: ");
+            writer.println(clinicalSummary);
+            writer.println();
+            writer.println("Requested Investigations: ");
+            writer.println(requestedInvestigations);
+            writer.println();
+            writer.println("--- APPOINTMENT DETAILS ---");
+            writer.println("Appointment ID: " + appointmentId);
+            writer.println();
+            writer.println("--- ADDITIONAL NOTES ---");
+            writer.println(notes);
+            writer.println();
+            writer.println("--- RECORD DETAILS ---");
+            writer.println("Created Date: " + createdDate);
+            writer.println("Last Updated: " + lastUpdated);
+            writer.println();
+            writer.println("=====================================");
+            writer.println();
+            writer.println();
+         } finally {
+            writer.close();
          }
-
+      } catch (Exception e) {
+         JOptionPane.showMessageDialog(this.referralsFrame, "Error writing to referrals_output.txt: " + e.getMessage());
       }
    }
 
