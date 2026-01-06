@@ -1,0 +1,32 @@
+# Compiled Java files
+*.class
+out/
+bin/
+
+# IDE files
+.classpath
+.project
+.settings/
+.vscode/
+*.iml
+.idea/
+
+# Log files
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Package files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Generated output files (optional - remove these lines if you want to track them)
+prescriptions_output.txt
+referrals_output.txt
