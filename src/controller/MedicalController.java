@@ -75,7 +75,7 @@ public class MedicalController {
             File file = new File(path);
             if (!file.exists()) continue;
             
-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 String headerLine = reader.readLine();
                 if (headerLine == null) continue;
                 
@@ -85,7 +85,7 @@ public class MedicalController {
                 
                 String line;
                 int count = 0;
-                while ((line = reader.readLine()) != null) {
+         while ((line = reader.readLine()) != null) {
                     List dataList = this.parseCsvLine(line);
                     if (dataList.size() == 0) continue;
                     
@@ -95,7 +95,8 @@ public class MedicalController {
                     }
                     this.view.getAppointmentsTableModel().addRow(rowData);
                     count++;
-                }
+                
+        }
                 System.out.println("Loaded " + count + " appointments");
                 return;
             } catch (Exception ex) {
@@ -104,6 +105,9 @@ public class MedicalController {
         }
         System.out.println("appointments.csv not found");
     }
+
+
+
 
     private void setupModuleListeners() {
         this.view.getPatientsBtn().addActionListener(e -> openPatientsWindow());
@@ -114,6 +118,8 @@ public class MedicalController {
         this.view.getReferralsBtn().addActionListener(e -> openReferralsWindow());
     }
 
+
+    
     // Open patients management window
     private void openPatientsWindow() {
         if (this.patientFrame == null || !this.patientFrame.isVisible()) {
