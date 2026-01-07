@@ -1,141 +1,191 @@
+
 package controller;
 
 import java.io.*;
 import java.time.LocalDate;
-import javax.swing.JOptionPane;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import view.CliniciansFrame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class CliniciansController {
-    
-    private CliniciansFrame cliniciansFrame;
-    
+
+    private CliniciansFrame frame;
+
     public CliniciansController(CliniciansFrame frame) {
-        this.cliniciansFrame = frame;
-        setupListeners();
+        this.frame = frame;
+
+        frame.getAddBtn().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                addClinician();
+            }
+        });
+
+        frame.getEditBtn().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                editClinician();
+            }
+        });
+
+        frame.getDeleteBtn().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                deleteClinician();
+            }
+        });
+
+        frame.getSaveBtn().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                saveClinicians();
+            }
+        });
+
+        frame.getCloseBtn().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                frame.dispose();
+            }
+        });
+
         loadClinicians();
     }
-    
-    // Setup button listeners
-    private void setupListeners() {
-        cliniciansFrame.getAddBtn().addActionListener(e -> addClinician());
-        cliniciansFrame.getEditBtn().addActionListener(e -> editClinician());
-        cliniciansFrame.getDeleteBtn().addActionListener(e -> deleteClinician());
-        cliniciansFrame.getSaveBtn().addActionListener(e -> saveClinicians());
-        cliniciansFrame.getCloseBtn().addActionListener(e -> cliniciansFrame.dispose());
-    }
-    
-    // Load clinicians from CSV file
+
+    // ---------------- Load Clinicians ----------------
+
     private void loadClinicians() {
         File file = new File("clinicians.csv");
         if (!file.exists()) {
             return;
         }
-        
+
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            reader.readLine(); // Skip header
-            
-            cliniciansFrame.getTableModel().setRowCount(0);
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            br.readLine();
+
+            DefaultTableModel model = frame.getTableModel();
+            model.setRowCount(0);
+
             String line;
-            
-            while ((line = reader.readLine()) != null) {
-                String[] data = line.split(",");
-                cliniciansFrame.getTableModel().addRow(data);
+            while ((line = br.readLine()) != null) {
+                model.addRow(line.split(",", -1));
             }
-            reader.close();
+
+            br.close();
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(cliniciansFrame, "Cannot load clinicians");
+            JOptionPane.showMessageDialog(frame, "Cannot load clinicians");
         }
     }
-    
-    // Add new clinician
+
+    // ---------------- Add Clinician ----------------
+
     private void addClinician() {
-        String firstName = JOptionPane.showInputDialog(cliniciansFrame, "First name:");
+        String firstName = JOptionPane.showInputDialog(frame, "First name:");
         if (firstName == null || firstName.trim().isEmpty()) return;
-        
-        String lastName = JOptionPane.showInputDialog(cliniciansFrame, "Last name:");
+
+        String lastName = JOptionPane.showInputDialog(frame, "Last name:");
         if (lastName == null || lastName.trim().isEmpty()) return;
-        
-        String title = JOptionPane.showInputDialog(cliniciansFrame, "Title (Dr/Mr/Mrs/Ms):");
-        String speciality = JOptionPane.showInputDialog(cliniciansFrame, "Speciality:");
-        String gmcNumber = JOptionPane.showInputDialog(cliniciansFrame, "GMC Number:");
-        String phone = JOptionPane.showInputDialog(cliniciansFrame, "Phone:");
-        String email = JOptionPane.showInputDialog(cliniciansFrame, "Email:");
-        String workplaceId = JOptionPane.showInputDialog(cliniciansFrame, "Workplace ID:");
-        String workplaceType = JOptionPane.showInputDialog(cliniciansFrame, "Workplace Type:");
-        String employmentStatus = JOptionPane.showInputDialog(cliniciansFrame, "Employment Status:");
-        
-        String clinicianId = "C" + (cliniciansFrame.getTableModel().getRowCount() + 1);
+
+        String title = JOptionPane.showInputDialog(frame, "Title:");
+         String speciality = JOptionPane.showInputDialog(frame, "Speciality:");
+          String gmcNumber = JOptionPane.showInputDialog(frame, "GMC Number:");
+            String phone = JOptionPane.showInputDialog(frame, "Phone:");
+           String email = JOptionPane.showInputDialog(frame, "Email:");
+           String workplaceId = JOptionPane.showInputDialog(frame, "Workplace ID:");
+         String workplaceType = JOptionPane.showInputDialog(frame, "Workplace Type:");
+        String employmentStatus = JOptionPane.showInputDialog(frame, "Employment Status:");
+
+        DefaultTableModel model = frame.getTableModel();
+
+        String clinicianId = "C0" + (model.getRowCount() + 1);
         String startDate = LocalDate.now().toString();
-        
-        Object[] row = {clinicianId, firstName, lastName, title, speciality, gmcNumber,
-                       phone, email, workplaceId, workplaceType, employmentStatus, startDate};
-        
-        cliniciansFrame.getTableModel().addRow(row);
-        JOptionPane.showMessageDialog(cliniciansFrame, "Clinician added! Click Save to save.");
+
+        Object[] row = {
+            clinicianId,
+            firstName,
+            lastName,
+            title,
+            speciality,
+            gmcNumber,
+            phone,
+            email,
+            workplaceId,
+            workplaceType,
+            employmentStatus,
+            startDate
+        };
+
+        model.addRow(row);
+        JOptionPane.showMessageDialog(frame, "Clinician added. Click Save.");
     }
-    
-    // Edit selected clinician
+
+    // ---------------- Edit Clinician ----------------
+
     private void editClinician() {
-        int row = cliniciansFrame.getSelectedRow();
+        int row = frame.getSelectedRow();
         if (row == -1) {
-            JOptionPane.showMessageDialog(cliniciansFrame, "Please select a clinician");
+            JOptionPane.showMessageDialog(frame, "Please select a clinician");
             return;
         }
-        
-        DefaultTableModel model = cliniciansFrame.getTableModel();
-        
+
+        DefaultTableModel model = frame.getTableModel();
+
         for (int i = 0; i < model.getColumnCount(); i++) {
-            String current = String.valueOf(model.getValueAt(row, i));
-            String newValue = JOptionPane.showInputDialog(cliniciansFrame, 
-                "Edit " + model.getColumnName(i) + ":", current);
+            String oldValue = String.valueOf(model.getValueAt(row, i));
+            String newValue = JOptionPane.showInputDialog(
+                frame, 
+                "Edit " + model.getColumnName(i) + ":", 
+                oldValue
+            );
+            
             if (newValue != null) {
                 model.setValueAt(newValue, row, i);
             }
         }
-        
-        JOptionPane.showMessageDialog(cliniciansFrame, "Clinician updated! Click Save to save.");
+
+        JOptionPane.showMessageDialog(frame, "Clinician updated. Click Save.");
     }
-    
-    // Delete selected clinician
+
+    // ---------------- Delete Clinician ----------------
+
     private void deleteClinician() {
-        int row = cliniciansFrame.getSelectedRow();
+        int row = frame.getSelectedRow();
         if (row == -1) {
-            JOptionPane.showMessageDialog(cliniciansFrame, "Please select a clinician");
+            JOptionPane.showMessageDialog(frame, "Please select a clinician");
             return;
         }
-        
-        int confirm = JOptionPane.showConfirmDialog(cliniciansFrame, "Delete this clinician?");
-        if (confirm == 0) {
-            cliniciansFrame.getTableModel().removeRow(row);
-            JOptionPane.showMessageDialog(cliniciansFrame, "Clinician deleted! Click Save to save.");
+
+        int confirm = JOptionPane.showConfirmDialog(frame, "Delete this clinician?");
+        if (confirm == JOptionPane.YES_OPTION) {
+            frame.getTableModel().removeRow(row);
+            JOptionPane.showMessageDialog(frame, "Clinician deleted. Click Save.");
         }
     }
-    
-    // Save clinicians to CSV file
+
+    // ---------------- Save Clinicians ----------------
+
     private void saveClinicians() {
         try {
-            PrintWriter writer = new PrintWriter(new FileWriter("clinicians.csv"));
-            
-            // Write header
-            writer.println("clinician_id,first_name,last_name,title,speciality,gmc_number,phone_number,email,workplace_id,workplace_type,employment_status,start_date");
-            
-            // Write data
-            DefaultTableModel model = cliniciansFrame.getTableModel();
+            PrintWriter pw = new PrintWriter(new FileWriter("clinicians.csv"));
+
+            pw.println("clinician_id,first_name,last_name,title,speciality,gmc_number," +
+                      "phone_number,email,workplace_id,workplace_type,employment_status,start_date");
+
+            DefaultTableModel model = frame.getTableModel();
+
             for (int row = 0; row < model.getRowCount(); row++) {
                 String[] data = new String[12];
                 for (int col = 0; col < 12; col++) {
                     Object value = model.getValueAt(row, col);
                     data[col] = value == null ? "" : value.toString();
                 }
-                writer.println(String.join(",", data));
+                pw.println(String.join(",", data));
             }
-            
-            writer.close();
-            JOptionPane.showMessageDialog(cliniciansFrame, "Clinicians saved successfully!");
+
+            pw.close();
+            JOptionPane.showMessageDialog(frame, "Clinicians saved successfully!");
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(cliniciansFrame, "Cannot save clinicians");
+            JOptionPane.showMessageDialog(frame, "Cannot save clinicians");
         }
     }
 }
+
+

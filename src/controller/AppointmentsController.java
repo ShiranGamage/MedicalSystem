@@ -7,137 +7,175 @@ import javax.swing.table.DefaultTableModel;
 import view.AppointmentsFrame;
 
 public class AppointmentsController {
-    
-    private AppointmentsFrame appointmentsFrame;
-    
-    public AppointmentsController(AppointmentsFrame frame) {
-        this.appointmentsFrame = frame;
-        setupListeners();
-        loadAppointments();
+
+    private AppointmentsFrame myFrame;
+    private MedicalController medicalController;
+
+    public AppointmentsController(AppointmentsFrame myFrame) {
+        this(myFrame, null);
     }
-    
-    // Setup button listeners
-    private void setupListeners() {
-        appointmentsFrame.getAddBtn().addActionListener(e -> addAppointment());
-        appointmentsFrame.getEditBtn().addActionListener(e -> editAppointment());
-        appointmentsFrame.getDeleteBtn().addActionListener(e -> deleteAppointment());
-        appointmentsFrame.getSaveBtn().addActionListener(e -> saveAppointments());
-        appointmentsFrame.getCloseBtn().addActionListener(e -> appointmentsFrame.dispose());
-    }
-    
-    // Load appointments from CSV file
-    private void loadAppointments() {
-        File file = new File("appointments.csv");
-        if (!file.exists()) {
-            return;
-        }
+
+    public AppointmentsController(AppointmentsFrame myFrame, MedicalController medicalController) {
         
+        this.myFrame = myFrame;
+        this.medicalController = medicalController;
+        myFrame.getAddBtn().addActionListener(e -> addAppointment());
+        myFrame.getEditBtn().addActionListener(e -> editAppointment());
+        myFrame.getDeleteBtn().addActionListener(e -> deleteAppointment());
+        myFrame.getSaveBtn().addActionListener(e -> saveAppointments());
+        myFrame.getCloseBtn().addActionListener(e -> myFrame.dispose());
+
+        loadAppointmentsInfo();
+    }
+
+    // ---------------- Load ----------------
+
+    private void loadAppointmentsInfo() {
+        
+        File file = new File("appointments.csv");
+        
+        if (!file.exists()) return;
+
         try {
             BufferedReader reader = new BufferedReader(new FileReader(file));
-            reader.readLine(); // Skip header
-            
-            appointmentsFrame.getTableModel().setRowCount(0);
-            String line;
-            
-            while ((line = reader.readLine()) != null) {
-                String[] data = line.split(",");
-                appointmentsFrame.getTableModel().addRow(data);
+            reader.readLine();
+            DefaultTableModel model = myFrame.getTableModel();
+            model.setRowCount(0);
+
+            String txtLine;
+            while ((txtLine = reader.readLine()) != null) {
+                model.addRow(txtLine.split(",", -1));
             }
             reader.close();
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(appointmentsFrame, "Cannot load appointments");
+            JOptionPane.showMessageDialog(myFrame, "Cannot load appointments");
         }
     }
-    
-    // Add new appointment
+
+    // ---------------- Add ----------------
+
     private void addAppointment() {
-        String patientId = JOptionPane.showInputDialog(appointmentsFrame, "Patient ID:");
+        String patientId = JOptionPane.showInputDialog(myFrame, "Patient ID:");
         if (patientId == null || patientId.trim().isEmpty()) return;
-        
-        String clinicianId = JOptionPane.showInputDialog(appointmentsFrame, "Clinician ID:");
+
+        String clinicianId = JOptionPane.showInputDialog(myFrame, "Clinician ID:");
         if (clinicianId == null || clinicianId.trim().isEmpty()) return;
-        
-        String facilityId = JOptionPane.showInputDialog(appointmentsFrame, "Facility ID:");
-        String appointmentDate = JOptionPane.showInputDialog(appointmentsFrame, "Date (YYYY-MM-DD):");
-        String appointmentTime = JOptionPane.showInputDialog(appointmentsFrame, "Time (HH:MM):");
-        String duration = JOptionPane.showInputDialog(appointmentsFrame, "Duration (minutes):");
-        String appointmentType = JOptionPane.showInputDialog(appointmentsFrame, "Type:");
-        String status = JOptionPane.showInputDialog(appointmentsFrame, "Status:");
-        String reason = JOptionPane.showInputDialog(appointmentsFrame, "Reason:");
-        String notes = JOptionPane.showInputDialog(appointmentsFrame, "Notes:");
-        
-        String appointmentId = "A" + (appointmentsFrame.getTableModel().getRowCount() + 1);
-        String createdDate = LocalDate.now().toString();
-        String lastModified = createdDate;
-        
-        Object[] row = {appointmentId, patientId, clinicianId, facilityId, appointmentDate, 
-                       appointmentTime, duration, appointmentType, status, reason, notes, 
-                       createdDate, lastModified};
-        
-        appointmentsFrame.getTableModel().addRow(row);
-        JOptionPane.showMessageDialog(appointmentsFrame, "Appointment added! Click Save to save.");
-    }
-    
-    // Edit selected appointment
-    private void editAppointment() {
-        int row = appointmentsFrame.getSelectedRow();
-        if (row == -1) {
-            JOptionPane.showMessageDialog(appointmentsFrame, "Please select an appointment");
-            return;
-        }
-        
-        DefaultTableModel model = appointmentsFrame.getTableModel();
-        
-        for (int i = 0; i < model.getColumnCount(); i++) {
-            String current = String.valueOf(model.getValueAt(row, i));
-            String newValue = JOptionPane.showInputDialog(appointmentsFrame, 
-                "Edit " + model.getColumnName(i) + ":", current);
-            if (newValue != null) {
-                model.setValueAt(newValue, row, i);
+
+        String facilityId = JOptionPane.showInputDialog(myFrame, "Facility ID:");
+        String date = JOptionPane.showInputDialog(myFrame, "Date (YYYY-MM-DD):");
+        String time = JOptionPane.showInputDialog(myFrame, "Time (HH:MM):");
+        String duration = JOptionPane.showInputDialog(myFrame, "Duration (minutes):");
+        String type = JOptionPane.showInputDialog(myFrame, "Type:");
+        String status = JOptionPane.showInputDialog(myFrame, "Status:");
+        String reason = JOptionPane.showInputDialog(myFrame, "Reason:");
+        String notes = JOptionPane.showInputDialog(myFrame, "Notes:");
+
+        DefaultTableModel model = myFrame.getTableModel();
+        String today = LocalDate.now().toString();
+
+        // Auto-generate appointment ID by comparing with last ID
+        int newIdNumber = 1;
+        if (model.getRowCount() > 0) {
+            String lastId = String.valueOf(model.getValueAt(model.getRowCount() - 1, 0));
+            if (lastId.startsWith("A")) {
+                try {
+                    newIdNumber = Integer.parseInt(lastId.substring(1)) + 1;
+                } catch (NumberFormatException e) {
+                    newIdNumber = model.getRowCount() + 1;
+                }
+            } else {
+                newIdNumber = model.getRowCount() + 1;
             }
         }
-        
-        JOptionPane.showMessageDialog(appointmentsFrame, "Appointment updated! Click Save to save.");
+
+        Object[] row = {
+            "A0" + newIdNumber,
+            patientId, clinicianId, facilityId,
+            date, time, duration,
+            type, status, reason, notes,
+            today, today
+        };
+
+        model.addRow(row);
+        JOptionPane.showMessageDialog(myFrame, "Appointment added! Click Save.");
     }
-    
-    // Delete selected appointment
-    private void deleteAppointment() {
-        int row = appointmentsFrame.getSelectedRow();
+
+    // ---------------- Edit ----------------
+
+    private void editAppointment() {
+        int row = myFrame.getSelectedRow();
         if (row == -1) {
-            JOptionPane.showMessageDialog(appointmentsFrame, "Please select an appointment");
+            JOptionPane.showMessageDialog(myFrame, "Please select an appointment");
             return;
         }
-        
-        int confirm = JOptionPane.showConfirmDialog(appointmentsFrame, "Delete this appointment?");
-        if (confirm == 0) {
-            appointmentsFrame.getTableModel().removeRow(row);
-            JOptionPane.showMessageDialog(appointmentsFrame, "Appointment deleted! Click Save to save.");
+
+        DefaultTableModel model = myFrame.getTableModel();
+
+        for (int col = 0; col < model.getColumnCount(); col++) {
+            String oldValue = String.valueOf(model.getValueAt(row, col));
+            String newValue = JOptionPane.showInputDialog(
+                    myFrame,
+                    "Edit " + model.getColumnName(col) + ":",
+                    oldValue
+            );
+
+            if (newValue != null) {
+                model.setValueAt(newValue, row, col);
+            }
+        }
+
+        JOptionPane.showMessageDialog(myFrame, "Appointment updated! Click Save.");
+    }
+
+    // ---------------- Delete ----------------
+
+    private void deleteAppointment() {
+        int row = myFrame.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(myFrame, "Please select an appointment");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(myFrame, "Delete this appointment?");
+        if (confirm == JOptionPane.YES_OPTION) {
+            myFrame.getTableModel().removeRow(row);
+            JOptionPane.showMessageDialog(myFrame, "Appointment deleted! Click Save.");
         }
     }
-    
-    // Save appointments to CSV file
+
+    // ---------------- Save ----------------
+
     private void saveAppointments() {
         try {
             PrintWriter writer = new PrintWriter(new FileWriter("appointments.csv"));
-            
-            // Write header
-            writer.println("appointment_id,patient_id,clinician_id,facility_id,appointment_date,appointment_time,duration_minutes,appointment_type,status,reason_for_visit,notes,created_date,last_modified");
-            
-            // Write data
-            DefaultTableModel model = appointmentsFrame.getTableModel();
-            for (int row = 0; row < model.getRowCount(); row++) {
+
+            writer.println("appointment_id,patient_id,clinician_id,facility_id,"
+                    + "appointment_date,appointment_time,duration_minutes,"
+                    + "appointment_type,status,reason_for_visit,notes,"
+                    + "created_date,last_modified");
+
+            DefaultTableModel model = myFrame.getTableModel();
+
+            for (int r = 0; r < model.getRowCount(); r++) {
                 String[] data = new String[13];
-                for (int col = 0; col < 13; col++) {
-                    Object value = model.getValueAt(row, col);
-                    data[col] = value == null ? "" : value.toString();
+
+                for (int c = 0; c < 13; c++) {
+                    Object val = model.getValueAt(r, c);
+                    data[c] = val == null ? "" : val.toString();
                 }
+
                 writer.println(String.join(",", data));
             }
-            
+
             writer.close();
-            JOptionPane.showMessageDialog(appointmentsFrame, "Appointments saved successfully!");
+            JOptionPane.showMessageDialog(myFrame, "Appointments saved successfully!");
+            
+            // Refresh main window appointments table
+            if (medicalController != null) {
+                medicalController.refreshMainAppointments();
+            }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(appointmentsFrame, "Cannot save appointments");
+            JOptionPane.showMessageDialog(myFrame, "Cannot save appointments");
         }
     }
 }

@@ -11,7 +11,6 @@ public class ReferralsFrame extends JFrame {
     
     private JTable referralsTable;
     private DefaultTableModel modelNew;
-    private DefaultTableModel tableModel;
     
     // Buttons for the menu
     
@@ -31,9 +30,9 @@ public class ReferralsFrame extends JFrame {
     setLayout(new BorderLayout(7, 7));
 
      // Set up the column names for the table
-    String[] col_Headers = {"Referral ID", "Patient ID", "Referring Clinician", "Referred To", "Referring Facility", 
-                         "Referred To Facility", "Date", "Urgency", "Reason", "Clinical Summary", 
-                         "Investigations", "Status", "Appointment ID", "Notes", "Created", "Last Updated"};
+    String[] col_Headers = {"Referral ID", "Patient ID", "Referring Clinician ID", "Referred To Clinician ID", "Referring Facility ID", 
+                         "Referred To Facility ID", "Referral Date", "Urgency Level", "Referral Reason", "Clinical Summary", 
+                         "Requested Investigations", "Status", "Appointment ID", "Notes", "Created Date", "Last Updated"};
     modelNew = new DefaultTableModel(col_Headers, 0);
     referralsTable = new JTable(modelNew);
         

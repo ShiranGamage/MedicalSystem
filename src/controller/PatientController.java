@@ -39,7 +39,7 @@ public class PatientController {
             String line;
             
             while ((line = reader.readLine()) != null) {
-                String[] data = line.split(",");
+                String[] data = line.split(",", -1);
                 patientFrame.getTableModel().addRow(data);
             }
         } catch (IOException e) {
@@ -66,7 +66,7 @@ public class PatientController {
         String emergencyPhone = JOptionPane.showInputDialog(patientFrame, "Emergency Phone:");
         String gpSurgeryId = JOptionPane.showInputDialog(patientFrame, "GP Surgery ID:");
         
-        String patientId = "P" + (patientFrame.getTableModel().getRowCount() + 1);
+        String patientId = "P0" + (patientFrame.getTableModel().getRowCount() + 1);
         String regDate = LocalDate.now().toString();
         
         Object[] row = {patientId, firstName, lastName, dob, nhsNumber, gender, 

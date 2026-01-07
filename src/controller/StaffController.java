@@ -2,140 +2,172 @@ package controller;
 
 import java.io.*;
 import java.time.LocalDate;
-import javax.swing.JOptionPane;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import view.StaffFrame;
 
 public class StaffController {
-    
-    private StaffFrame staffFrame;
-    
+
+    private StaffFrame frame;
+
     public StaffController(StaffFrame frame) {
-        this.staffFrame = frame;
-        setupListeners();
+        this.frame = frame;
+
+        frame.getAddBtn().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                addStaff();
+            }
+        });
+
+        frame.getEditBtn().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                editStaff();
+            }
+        });
+
+        frame.getDeleteBtn().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                deleteStaff();
+            }
+        });
+
+        frame.getSaveBtn().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                saveStaff();
+            }
+        });
+
+        frame.getCloseBtn().addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                frame.dispose();
+            }
+        });
+
         loadStaff();
     }
-    
-    // Setup button listeners
-    private void setupListeners() {
-        staffFrame.getAddBtn().addActionListener(e -> addStaff());
-        staffFrame.getEditBtn().addActionListener(e -> editStaff());
-        staffFrame.getDeleteBtn().addActionListener(e -> deleteStaff());
-        staffFrame.getSaveBtn().addActionListener(e -> saveStaff());
-        staffFrame.getCloseBtn().addActionListener(e -> staffFrame.dispose());
-    }
-    
-    // Load staff from CSV file
+
+    // ---------------- Load Staff ----------------
+
     private void loadStaff() {
         File file = new File("staff.csv");
-        if (!file.exists()) {
-            return;
-        }
-        
+        if (!file.exists()) return;
+
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            reader.readLine(); // Skip header
-            
-            staffFrame.getTableModel().setRowCount(0);
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            br.readLine();
+
+            DefaultTableModel model = frame.getTableModel();
+            model.setRowCount(0);
+
             String line;
-            
-            while ((line = reader.readLine()) != null) {
-                String[] data = line.split(",");
-                staffFrame.getTableModel().addRow(data);
+            while ((line = br.readLine()) != null) {
+                String[] data = line.split(",", -1);
+                model.addRow(data);
             }
-            reader.close();
+
+            br.close();
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(staffFrame, "Cannot load staff");
+            JOptionPane.showMessageDialog(frame, "Cannot load staff");
         }
     }
-    
-    // Add new staff
+
+    // ---------------- Add Staff ----------------
+
     private void addStaff() {
-        String firstName = JOptionPane.showInputDialog(staffFrame, "First name:");
+        String firstName = JOptionPane.showInputDialog(frame, "First name:");
         if (firstName == null || firstName.trim().isEmpty()) return;
-        
-        String lastName = JOptionPane.showInputDialog(staffFrame, "Last name:");
+
+        String lastName = JOptionPane.showInputDialog(frame, "Last name:");
         if (lastName == null || lastName.trim().isEmpty()) return;
-        
-        String role = JOptionPane.showInputDialog(staffFrame, "Role:");
-        String department = JOptionPane.showInputDialog(staffFrame, "Department:");
-        String facilityId = JOptionPane.showInputDialog(staffFrame, "Facility ID:");
-        String phone = JOptionPane.showInputDialog(staffFrame, "Phone:");
-        String email = JOptionPane.showInputDialog(staffFrame, "Email:");
-        String employmentStatus = JOptionPane.showInputDialog(staffFrame, "Employment Status:");
-        String lineManager = JOptionPane.showInputDialog(staffFrame, "Line Manager:");
-        String accessLevel = JOptionPane.showInputDialog(staffFrame, "Access Level:");
-        
-        String staffId = "S" + (staffFrame.getTableModel().getRowCount() + 1);
+
+        String role = JOptionPane.showInputDialog(frame, "Role:");
+        String department = JOptionPane.showInputDialog(frame, "Department:");
+        String facilityId = JOptionPane.showInputDialog(frame, "Facility ID:");
+        String phone = JOptionPane.showInputDialog(frame, "Phone:");
+        String email = JOptionPane.showInputDialog(frame, "Email:");
+        String employmentStatus = JOptionPane.showInputDialog(frame, "Employment Status:");
+        String lineManager = JOptionPane.showInputDialog(frame, "Line Manager:");
+        String accessLevel = JOptionPane.showInputDialog(frame, "Access Level:");
+
+        DefaultTableModel model = frame.getTableModel();
+        String staffId = "ST" + (model.getRowCount() + 1);
         String startDate = LocalDate.now().toString();
-        
-        Object[] row = {staffId, firstName, lastName, role, department, facilityId,
-                       phone, email, employmentStatus, startDate, lineManager, accessLevel};
-        
-        staffFrame.getTableModel().addRow(row);
-        JOptionPane.showMessageDialog(staffFrame, "Staff added! Click Save to save.");
+
+        Object[] row = {
+            staffId, firstName, lastName, role, department, facilityId,
+            phone, email, employmentStatus, startDate, lineManager, accessLevel
+        };
+
+        model.addRow(row);
+        JOptionPane.showMessageDialog(frame, "Staff added! Click Save.");
     }
-    
-    // Edit selected staff
+
+    // ---------------- Edit Staff ----------------
+
     private void editStaff() {
-        int row = staffFrame.getSelectedRow();
+        int row = frame.getSelectedRow();
         if (row == -1) {
-            JOptionPane.showMessageDialog(staffFrame, "Please select a staff member");
+            JOptionPane.showMessageDialog(frame, "Please select a staff member");
             return;
         }
-        
-        DefaultTableModel model = staffFrame.getTableModel();
-        
+
+        DefaultTableModel model = frame.getTableModel();
+
         for (int i = 0; i < model.getColumnCount(); i++) {
-            String current = String.valueOf(model.getValueAt(row, i));
-            String newValue = JOptionPane.showInputDialog(staffFrame, 
-                "Edit " + model.getColumnName(i) + ":", current);
+            String oldValue = String.valueOf(model.getValueAt(row, i));
+            String newValue = JOptionPane.showInputDialog(frame, "Edit " + model.getColumnName(i), oldValue);
             if (newValue != null) {
                 model.setValueAt(newValue, row, i);
             }
         }
-        
-        JOptionPane.showMessageDialog(staffFrame, "Staff updated! Click Save to save.");
+
+        JOptionPane.showMessageDialog(frame, "Staff updated! Click Save.");
     }
-    
-    // Delete selected staff
+
+    // ---------------- Delete Staff ----------------
+
     private void deleteStaff() {
-        int row = staffFrame.getSelectedRow();
+        int row = frame.getSelectedRow();
         if (row == -1) {
-            JOptionPane.showMessageDialog(staffFrame, "Please select a staff member");
+            JOptionPane.showMessageDialog(frame, "Please select a staff member");
             return;
         }
-        
-        int confirm = JOptionPane.showConfirmDialog(staffFrame, "Delete this staff member?");
-        if (confirm == 0) {
-            staffFrame.getTableModel().removeRow(row);
-            JOptionPane.showMessageDialog(staffFrame, "Staff deleted! Click Save to save.");
+
+        int confirm = JOptionPane.showConfirmDialog(frame, "Delete this staff member?");
+        if (confirm == JOptionPane.YES_OPTION) {
+            frame.getTableModel().removeRow(row);
+            JOptionPane.showMessageDialog(frame, "Staff deleted! Click Save.");
         }
     }
-    
-    // Save staff to CSV file
+
+    // ---------------- Save Staff ----------------
+
     private void saveStaff() {
         try {
             PrintWriter writer = new PrintWriter(new FileWriter("staff.csv"));
-            
-            // Write header
-            writer.println("staff_id,first_name,last_name,role,department,facility_id,phone_number,email,employment_status,start_date,line_manager,access_level");
-            
-            // Write data
-            DefaultTableModel model = staffFrame.getTableModel();
-            for (int row = 0; row < model.getRowCount(); row++) {
+
+            writer.println(
+                "staff_id,first_name,last_name,role,department,facility_id,phone_number," +
+                "email,employment_status,start_date,line_manager,access_level"
+            );
+
+            DefaultTableModel model = frame.getTableModel();
+
+            for (int r = 0; r < model.getRowCount(); r++) {
                 String[] data = new String[12];
-                for (int col = 0; col < 12; col++) {
-                    Object value = model.getValueAt(row, col);
-                    data[col] = value == null ? "" : value.toString();
+                for (int c = 0; c < 12; c++) {
+                    Object value = model.getValueAt(r, c);
+                    data[c] = value == null ? "" : value.toString();
                 }
                 writer.println(String.join(",", data));
             }
-            
+
             writer.close();
-            JOptionPane.showMessageDialog(staffFrame, "Staff saved successfully!");
+            JOptionPane.showMessageDialog(frame, "Staff saved successfully!");
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(staffFrame, "Cannot save staff");
+            JOptionPane.showMessageDialog(frame, "Cannot save staff");
         }
     }
 }

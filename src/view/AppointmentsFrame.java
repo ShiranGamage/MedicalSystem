@@ -25,7 +25,7 @@ public class AppointmentsFrame extends JFrame {
     public AppointmentsFrame() {
         // Basic Window Setup
     setTitle("Hospital Appointments Management");
-    setSize(1250, 650); 
+    setSize(1200, 650); 
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     setLocationRelativeTo(null);
     

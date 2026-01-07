@@ -44,8 +44,9 @@ public MainFrame() {
     topPanel.add(cliniciansBtn);
     topPanel.add(appointmentsBtn);
     topPanel.add(prescriptionsBtn);
-    topPanel.add(staffBtn);
+    
     topPanel.add(referralsBtn);
+    topPanel.add(staffBtn);
     add(topPanel, BorderLayout.NORTH);
 
         // Center panel with appointments table
