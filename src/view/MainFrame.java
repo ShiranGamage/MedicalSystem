@@ -22,7 +22,7 @@ public MainFrame() {
        
         
     setTitle("Medical Management System");
-    setSize(1250, 650);
+    setSize(1000, 500);
     setDefaultCloseOperation(EXIT_ON_CLOSE);
     setLocationRelativeTo(null);
     setLayout(new BorderLayout(9, 9));
@@ -34,12 +34,24 @@ public MainFrame() {
     prescriptionsBtn = new JButton("Prescriptions");
     staffBtn = new JButton("Staff");
     referralsBtn = new JButton("Referrals");
+    
+    // Apply modern styling to buttons
+    styleButton(patientsBtn);
+    styleButton(cliniciansBtn);
+    styleButton(appointmentsBtn);
+    styleButton(prescriptionsBtn);
+    styleButton(staffBtn);
+    styleButton(referralsBtn);
 
         // Top panel with buttons
         JPanel topPanel = new JPanel();
 
-    topPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 9, 9));
-    topPanel.add(new JLabel("Modules: "));
+    topPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 12, 12));
+    topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 0));
+    topPanel.setBackground(new Color(240, 240, 240));
+    JLabel modulesLabel = new JLabel("Modules: ");
+    modulesLabel.setFont(new Font("Segoe UI", Font.BOLD, 15));
+    topPanel.add(modulesLabel);
     topPanel.add(patientsBtn);
     topPanel.add(cliniciansBtn);
     topPanel.add(appointmentsBtn);
@@ -55,6 +67,7 @@ public MainFrame() {
     appointmentsTable = new JTable(appointmentsTableModel);
         
         JPanel center_Panel = new JPanel(new BorderLayout());
+        center_Panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         center_Panel.add(new JLabel("Appointments Pool:"), BorderLayout.NORTH);
         JScrollPane scrollPane = new JScrollPane(appointmentsTable);
         center_Panel.add(scrollPane, BorderLayout.CENTER);
@@ -98,5 +111,17 @@ public MainFrame() {
     // Update table columns
     public void updateAppointmentColumns(String[] headers) {
         appointmentsTableModel.setColumnIdentifiers(headers);
+    }
+    
+    // Modern button styling
+    private void styleButton(JButton button) {
+        button.setPreferredSize(new Dimension(135, 40));
+        button.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Color.GRAY, 1),
+            BorderFactory.createEmptyBorder(5, 15, 5, 15)
+        ));
     }
 }

@@ -39,6 +39,7 @@ public class ReferralsFrame extends JFrame {
         // scroll panel
     
     JScrollPane scrollPane = new JScrollPane(referralsTable);
+    scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
     add(scrollPane, BorderLayout.CENTER);
 
     // Bottom panel for buttons
